@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Somesha M — Railway Signalling Engineer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-950: #040914;
+    --navy-900: #0a1526;
+    --navy-800: #10223b;
+    --navy-700: #1c3554;
+    
+    /* Signal & Track System Colors */
+    --track: #1d4b73;
+    --track-glow: #00b0ff;
+    --signal-green: #00E676;
+    --signal-green-dim: rgba(0, 230, 118, 0.25);
+    --signal-amber: #FFC400;
+    --signal-red: #FF1744;
+    
+    --paper: #F5F6FA;
+    --paper-dim: #90A4AE;
+    
+    /* Technical Typography */
+    --mono: 'JetBrains Mono', monospace;
+    --disp: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--navy-950);
+    color: var(--paper);
+    font-family: var(--body);
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stage {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: radial-gradient(circle at 50% 50%, var(--navy-900) 0%, var(--navy-950) 100%);
+    overflow: hidden;
+    border-bottom: 1px solid rgba(28, 53, 84, 0.4);
+    padding: 20px 0;
+  }
+
+  .grid-overlay {
+    position: absolute; 
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 176, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 176, 255, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+    z-index: 1;
+    transition: transform 0.5s ease-out;
+  }
+
+  .stage.active .grid-overlay {
+    transform: scale(1.02);
+  }
+
+  .scene {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    padding: 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .rail-spine {
+    position: absolute;
+    left: 4%; 
+    right: 4%; 
+    top: 55%;
+    height: 4px;
+    background: var(--track);
+    transform: translateY(-50%) scaleX(0);
+    transform-origin: left center;
+    z-index: 2;
+    box-shadow: 0 0 8px rgba(0, 176, 255, 0.3);
+    transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1), background 0.4s ease;
+    will-change: transform;
+  }
+
+  .stage.active .rail-spine { 
+    transform: translateY(-50%) scaleX(1); 
+    background: var(--track-glow);
+    box-shadow: 0 0 16px var(--track-glow);
+  }
+
+  /* ============ SCENE 1 : INTRO ============ */
+  .intro-layout {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 3;
+    width: 100%;
+    max-width: 850px;
+    text-align: center;
+    position: relative;
+    flex-direction: column;
+  }
+
+  .interlocking-sequencer {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animated-aspect-post {
+    width: 40px;
+    background: #111a2e;
+    border: 3px solid #233554;
+    border-radius: 20px;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+
+  .lens-bulb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #090f1d;
+    border: 2px solid #1c2d42;
+    transition: all 0.3s ease;
+  }
+
+  .stage.active .lens-bulb.red-lens { animation: signalRedToggle 1.5s forwards; }
+  .stage.active .lens-bulb.amber-lens { animation: signalAmberToggle 2.5s forwards; }
+  .stage.active .lens-bulb.green-lens { animation: signalGreenToggle 3.8s forwards; }
+
+  @keyframes signalRedToggle {
+    0%, 70% { background: var(--signal-red); box-shadow: 0 0 16px var(--signal-red); border-color: #ff8a9f; }
+    71%, 100% { background: #090f1d; box-shadow: none; border-color: #1c2d42; }
+  }
+  @keyframes signalAmberToggle {
+    0%, 70% { background: #090f1d; box-shadow: none; border-color: #1c2d42; }
+    71%, 88% { background: var(--signal-amber); box-shadow: 0 0 16px var(--signal-amber); border-color: #ffe082; }
+    89%, 100% { background: #090f1d; box-shadow: none; border-color: #1c2d42; }
+  }
+  @keyframes signalGreenToggle {
+    0%, 88% { background: #090f1d; box-shadow: none; border-color: #1c2d42; }
+    89%, 100% { background: var(--signal-green); box-shadow: 0 0 20px var(--signal-green); border-color: #b9f6ca; }
+  }
+
+  .sequencer-status-text {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--paper-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    height: 16px;
+  }
+
+  .stage.active .sequencer-status-text::after {
+    content: 'ROUTE LOCKED: RED';
+    animation: statusTextCycle 3.8s steps(1) forwards;
+  }
+
+  @keyframes statusTextCycle {
+    0% { content: 'ROUTE LOCKED: RED'; color: var(--signal-red); }
+    71% { content: 'SWITCH THROW: IN PROGRESS'; color: var(--signal-amber); }
+    89% { content: 'TRACK CLEAR: PROCEED'; color: var(--signal-green); }
+  }
+
+  /* Profile Photo container for Mobile & Desktop */
+  .profile-container {
+    position: relative;
+    width: 110px;      
+    height: 110px;     
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 2px solid var(--track-glow);
+    padding: 3px;
+    background: var(--navy-900);
+    box-shadow: 0 0 20px rgba(0, 176, 255, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9) translateY(15px);
+    transition: opacity 0.8s ease, transform 0.8s ease, visibility 0.8s ease;
+  }
+
+  .profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    border-radius: 6px;
+    background: var(--navy-800);
+    display: block;
+  }
+
+  .signal-lamp {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 14px; 
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--navy-950);
+    background: var(--signal-green);
+    box-shadow: 0 0 12px var(--signal-green);
+  }
+
+  .intro-text-block { 
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+
+  .stage-intro-running .interlocking-sequencer { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .stage-intro-cleared .interlocking-sequencer { opacity: 0; transform: translate(-50%, -60%) scale(0.85); pointer-events: none; }
+  .stage-intro-cleared .profile-container { visibility: visible; opacity: 1; transform: scale(1) translateY(0); }
+  .stage-intro-cleared .intro-text-block { visibility: visible; opacity: 1; }
+
+  .name-reveal {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 6vw, 2.8rem);
+    letter-spacing: 0.05em;
+    margin: 8px 0 0 0;
+    color: var(--paper);
+    animation: fadeInUp 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  }
+
+  .role-flip {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: clamp(0.75rem, 3.2vw, 1.05rem);
+    color: var(--track-glow);
+    letter-spacing: 0.05em;
+  }
+
+  .role-flip .cursor {
+    display: inline-block;
+    width: 5px; 
+    height: 12px;
+    background: var(--track-glow);
+    margin-left: 4px;
+    animation: blink 0.8s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .location-tag {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--paper-dim);
+    letter-spacing: 0.1em;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------------- HEADINGS ---------------- */
+  #scene-skills, #scene-achieve, #scene-experience, #scene-metrics { flex-direction: column; justify-content: flex-start; }
+
+  .scene-heading {
+    align-self: flex-start;
+    margin-bottom: 16px;
+    padding-top: 1vh;
+    z-index: 3;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1), transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .stage.active .scene-heading { opacity: 1; transform: translateY(0); }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    color: var(--signal-amber);
+    text-transform: uppercase;
+    margin: 0 0 4px;
+  }
+
+  .heading-title {
+    font-family: var(--disp);
+    font-weight: 600;
+    font-size: clamp(1.2rem, 5vw, 1.7rem);
+    margin: 0;
+  }
+
+  /* ---------------- SCENE 2 : SKILLS ---------------- */
+  .station-row {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+    margin-top: 10px;
+  }
+
+  .station {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 45%;
+    padding: 10px 6px;
+    background: rgba(10, 21, 38, 0.6);
+    border: 1px solid var(--navy-700);
+    border-radius: 8px;
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.6s ease;
+  }
+
+  .station-dot {
+    width: 10px; 
+    height: 10px;
+    border-radius: 50%;
+    background: var(--navy-950);
+    border: 2px solid var(--track-glow);
+    margin-bottom: 8px;
+    transition: all 0.4s ease;
+  }
+
+  .stage.active .station { opacity: 1; transform: scale(1) translateY(0); }
+  .stage.active .station-dot {
+    background: var(--signal-green);
+    border-color: var(--signal-green);
+    box-shadow: 0 0 10px var(--signal-green);
+  }
+
+  .station-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-align: center;
+    color: var(--paper-dim);
+    line-height: 1.35;
+  }
+
+  /* ---------------- SCENE 3: PROFESSIONAL HISTORY ---------------- */
+  .timeline-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 3;
+  }
+
+  .timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: var(--navy-700);
+    transform: scaleY(0);
+    transform-origin: top center;
+    transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .stage.active .timeline-container::before {
+    transform: scaleY(1);
+    background: linear-gradient(to bottom, var(--signal-green), var(--track-glow), var(--navy-700));
+  }
+
+  .timeline-block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 28px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .stage.active .timeline-block { opacity: 1; transform: translateX(0); }
+
+  .timeline-lever-node {
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--navy-950);
+    border: 2px solid var(--navy-700);
+    z-index: 2;
+  }
+
+  .stage.active .timeline-block:nth-child(1) .timeline-lever-node { border-color: var(--signal-green); background: var(--signal-green); box-shadow: 0 0 8px var(--signal-green); }
+  .stage.active .timeline-block:nth-child(2) .timeline-lever-node { border-color: var(--track-glow); background: var(--track-glow); box-shadow: 0 0 8px var(--track-glow); }
+  .stage.active .timeline-block:nth-child(3) .timeline-lever-node { border-color: var(--signal-amber); background: var(--signal-amber); box-shadow: 0 0 8px var(--signal-amber); }
+
+  .timeline-date {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--track-glow);
+  }
+
+  .timeline-content-card {
+    background: rgba(10, 21, 38, 0.85);
+    border: 1px solid var(--navy-700);
+    border-radius: 6px;
+    padding: 10px 12px;
+    width: 100%;
+  }
+
+  .timeline-content-card .exp-role {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0 0 2px 0;
+    color: var(--paper);
+  }
+
+  .timeline-content-card .exp-company {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--paper-dim);
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+  }
+
+  .timeline-content-card .exp-bullets {
+    margin: 0;
+    padding-left: 14px;
+    font-size: 0.72rem;
+    color: var(--paper-dim);
+    line-height: 1.35;
+  }
+
+  .timeline-content-card .exp-bullets li { margin-bottom: 2px; }
+
+  /* ---------------- SCENE 4 : KEY ACHIEVEMENTS ---------------- */
+  .carriage-track {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 3;
+  }
+
+  .carriage {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--navy-900);
+    border: 1px solid var(--navy-700);
+    border-left: 3px solid var(--track-glow);
+    border-radius: 6px;
+    padding: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .stage.active .carriage {
+    opacity: 1;
+    transform: translateY(0);
+    border-left-color: var(--signal-green);
+  }
+
+  .carriage-icon {
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--signal-amber);
+  }
+
+  .carriage-text .t-title {
+    font-family: var(--disp);
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin: 0 0 2px;
+    color: var(--paper);
+  }
+
+  .carriage-text .t-sub {
+    font-size: 0.72rem;
+    color: var(--paper-dim);
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  /* ---------------- SCENE 5 : METRICS & INTERLOCKING ---------------- */
+  .metrics-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    z-index: 3;
+  }
+
+  .metric-card {
+    background: var(--navy-900);
+    border: 1px solid var(--navy-700);
+    border-radius: 6px;
+    padding: 10px 4px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  .stage.active .metric-card { opacity: 1; transform: translateY(0); }
+
+  .metric-num {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(1.1rem, 4vw, 1.8rem);
+    color: var(--signal-green);
+  }
+
+  .metric-label {
+    font-size: 0.55rem;
+    color: var(--paper-dim);
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  .zone-container {
+    width: 100%;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .zone-strip {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .zone-chip {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    padding: 6px 10px;
+    background: var(--navy-950);
+    border: 1px solid var(--navy-700);
+    border-radius: 4px;
+    color: var(--paper-dim);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+  }
+
+  .zone-chip.interactive-trigger.active-selected {
+    background: var(--signal-green);
+    color: var(--navy-950);
+    font-weight: 700;
+    border-color: var(--signal-green);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
+  }
+
+  /* Connecting Green Track Line */
+  .filament-track-line {
+    width: 100%;
+    height: 3px;
+    background: var(--navy-700);
+    margin-bottom: 10px;
+    border-radius: 2px;
+    transition: all 0.4s ease;
+    position: relative;
+  }
+
+  .interlocking-filament.open .filament-track-line {
+    background: var(--signal-green);
+    box-shadow: 0 0 10px var(--signal-green), 0 0 20px var(--signal-green-dim);
+  }
+
+  .interlocking-filament {
+    width: 100%;
+    background: rgba(4, 9, 20, 0.9);
+    border: 0 solid rgba(0, 230, 118, 0.3);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    max-height: 0;
+  }
+
+  .interlocking-filament.open {
+    max-height: 180px;
+    opacity: 1;
+    border-width: 1px;
+    padding: 12px 10px;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.15);
+  }
+
+  .filament-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 4px;
+  }
+
+  .node-lamp {
+    width: 10px;
+    height: 10px;
+    background: var(--navy-950);
+    border: 2px solid var(--track-glow);
+    border-radius: 50%;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .filament-node.occupied .node-lamp {
+    background: var(--signal-green);
+    border-color: var(--signal-green);
+    box-shadow: 0 0 10px var(--signal-green);
+  }
+
+  .node-code {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    color: var(--paper-dim);
+  }
+  .filament-node.occupied .node-code { color: var(--signal-green); font-weight: bold; }
+
+  /* ---------------- SCENE 6 : CTA ---------------- */
+  #scene-cta .content { text-align: center; z-index: 3; width: 100%; }
+  .cta-lamp {
+    width: 14px; 
+    height: 14px;
+    border-radius: 50%;
+    background: var(--signal-green);
+    box-shadow: 0 0 16px var(--signal-green);
+    margin: 0 auto 16px;
+  }
+
+  .cta-heading {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+    margin: 0 0 16px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .cta-btn {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .cta-btn-primary {
+    background: #0077b5;
+    color: #ffffff;
+    border: 1px solid #0077b5;
+    box-shadow: 0 4px 12px rgba(0, 119, 181, 0.3);
+  }
+
+  .cta-btn-primary:hover {
+    background: #005885;
+  }
+
+  .cta-btn-secondary {
+    background: transparent;
+    color: var(--track-glow);
+    border: 1px solid var(--navy-700);
+  }
+
+  .cta-btn-secondary:hover {
+    border-color: var(--track-glow);
+    background: rgba(0, 176, 255, 0.08);
+  }
+</style>
+</head>
+<body class="stage-intro-running">
+
+<div class="stage" id="stage-intro">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-intro">
+    <div class="rail-spine"></div>
+    <div class="intro-layout">
+      
+      <div class="interlocking-sequencer" id="signal-sequencer">
+        <div class="animated-aspect-post">
+          <div class="lens-bulb green-lens"></div>
+          <div class="lens-bulb amber-lens"></div>
+          <div class="lens-bulb red-lens"></div>
+        </div>
+        <div class="sequencer-status-text"></div>
+      </div>
+
+      <div class="profile-container" id="intro-avatar">
+        <!-- Clean path for GitHub compatibility -->
+        <img src="profile.jpg" alt="Somesha M" class="profile-pic">
+        <div class="signal-lamp"></div>
+      </div>
+      <div class="intro-text-block" id="intro-titles">
+        <h1 class="name-reveal">SOMESHA M</h1>
+        <div class="role-flip">RAILWAY SIGNALLING ENGINEER<span class="cursor"></span></div>
+        <div class="location-tag">BENGALURU · KARNATAKA · INDIA</div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage-skills">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-skills">
+    <div class="scene-heading">
+      <p class="eyebrow">Core Competencies</p>
+      <h2 class="heading-title">5 Years Across Interlocking</h2>
+    </div>
+    <div class="station-row">
+      <div class="station"><div class="station-dot"></div><div class="station-label">Electronic<br>Interlocking</div></div>
+      <div class="station"><div class="station-dot"></div><div class="station-label">IFAT / CFAT / SAT<br>&amp; Commissioning</div></div>
+      <div class="station"><div class="station-dot"></div><div class="station-label">Cable Core<br>Plans / VDU</div></div>
+      <div class="station"><div class="station-dot"></div><div class="station-label">Python + AI<br>Test Tools</div></div>
+      <div class="station"><div class="station-dot"></div><div class="station-label">AutoCAD<br>Design</div></div>
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage-experience">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-experience">
+    <div class="scene-heading">
+      <p class="eyebrow">Professional History</p>
+      <h2 class="heading-title">Milestones on Track</h2>
+    </div>
+    
+    <div class="timeline-container">
+      <div class="timeline-block">
+        <div class="timeline-lever-node"></div>
+        <div class="timeline-date">2025 - PRESENT</div>
+        <div class="timeline-content-card">
+          <h3 class="exp-role">Assistant Engineer</h3>
+          <p class="exp-company">Sensedge Transportation Systems</p>
+          <ul class="exp-bullets">
+            <li>Testing across SR, SWR, SCR, WR, WCR, NER, NFR, etc.</li>
+            <li>Lead Customer Factory Acceptance Testing (CFAT).</li>
+            <li>Delivered testing for SCR - Kakinada Port (494 routes).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-block">
+        <div class="timeline-lever-node"></div>
+        <div class="timeline-date">2023 - 2025</div>
+        <div class="timeline-content-card">
+          <h3 class="exp-role">Junior Testing Engineer</h3>
+          <p class="exp-company">Sensedge Transportation Systems</p>
+          <ul class="exp-bullets">
+            <li>EI testing and IFAT/CFAT/SAT across 15+ stations.</li>
+            <li>Multi-OEM system testing (Hitachi, Siemens Rail).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-block">
+        <div class="timeline-lever-node"></div>
+        <div class="timeline-date">2021 - 2023</div>
+        <div class="timeline-content-card">
+          <h3 class="exp-role">Diploma Trainee Engineer</h3>
+          <p class="exp-company">Sensedge Transportation Systems</p>
+          <ul class="exp-bullets">
+            <li>Interface circuitry plans for 10+ new and 20+ alteration stations.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage-achieve">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-achieve">
+    <div class="scene-heading">
+      <p class="eyebrow">Key Achievements</p>
+      <h2 class="heading-title">Recognition Earned</h2>
+    </div>
+    <div class="carriage-track">
+      <div class="carriage">
+        <div class="carriage-icon">&#9733;</div>
+        <div class="carriage-text">
+          <p class="t-title">Innovation — Square Sheet Tool</p>
+          <p class="t-sub">Custom Python + AI-based validation system for quick verification.</p>
+        </div>
+      </div>
+      <div class="carriage">
+        <div class="carriage-icon">&#9776;</div>
+        <div class="carriage-text">
+          <p class="t-title">Appreciation Across 5 Stations</p>
+          <p class="t-sub">Zero-defect field delivery — NWR: PRUR, KESR, GJS, SRW · WR: BJW.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage-metrics">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-metrics">
+    <div class="scene-heading">
+      <p class="eyebrow">Delivery &amp; Assets</p>
+      <h2 class="heading-title">Track Record &amp; Zones</h2>
+    </div>
+    <div class="metrics-content">
+      <div class="metrics-grid">
+        <div class="metric-card" data-target="5" data-suffix=""><span class="metric-num">0</span><div class="metric-label">Years Exp</div></div>
+        <div class="metric-card" data-target="85" data-suffix="+"><span class="metric-num">0</span><div class="metric-label">Stations</div></div>
+        <div class="metric-card" data-target="494" data-suffix=""><span class="metric-num">0</span><div class="metric-label">Routes (COA)</div></div>
+      </div>
+      
+      <div class="zone-container">
+        <div class="zone-strip">
+          <div class="zone-chip interactive-trigger" id="sr-trigger">SR</div>
+          <div class="zone-chip interactive-trigger" id="swr-trigger">SWR</div>
+          <div class="zone-chip interactive-trigger" id="scr-trigger">SCR</div>
+          <div class="zone-chip interactive-trigger" id="secr-trigger">SECR</div>
+          <div class="zone-chip interactive-trigger" id="ncr-trigger">NCR</div>
+          <div class="zone-chip interactive-trigger" id="nwr-trigger">NWR</div>
+          <div class="zone-chip interactive-trigger" id="ner-trigger">NER</div>
+          <div class="zone-chip interactive-trigger" id="nfr-trigger">NFR</div>
+          <div class="zone-chip interactive-trigger" id="er-trigger">ER</div>
+          <div class="zone-chip interactive-trigger" id="km-trigger">KM</div>
+          <div class="zone-chip interactive-trigger" id="wr-trigger">WR</div>
+          <div class="zone-chip interactive-trigger" id="wcr-trigger">WCR</div>
+          <div class="zone-chip interactive-trigger" id="cr-trigger">CR</div>
+        </div>
+
+        <div class="interlocking-filament" id="interlocking-panel">
+          <div class="filament-track-line"></div>
+          <div style="width: 100%; display: flex; align-items: center; justify-content: space-around; padding-bottom: 8px;">
+            <div id="dynamic-node-container" style="display: flex; justify-content: space-around; width: 100%;"></div>
+          </div>
+          <div id="station-details-panel" style="width: 100%; text-align: center; font-family: var(--mono); font-size: 0.68rem; color: var(--signal-amber); opacity: 0; transition: opacity 0.3s ease;">
+            SELECT A STATION NODE
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage-cta">
+  <div class="grid-overlay"></div>
+  <section class="scene" id="scene-cta">
+    <div class="content">
+      <div class="cta-lamp"></div>
+      <h2 class="cta-heading">Let's Connect</h2>
+      
+      <div class="cta-buttons">
+        <a href="https://linkedin.com/in/somesha-m-2061371ba" target="_blank" rel="noopener" class="cta-btn cta-btn-primary">
+          <span>Connect on LinkedIn</span>
+        </a>
+        <a href="mailto:somesha211101@gmail.com" class="cta-btn cta-btn-secondary">
+          <span>somesha211101@gmail.com</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  
+  setTimeout(function() {
+    document.body.classList.remove('stage-intro-running');
+    document.body.classList.add('stage-intro-cleared');
+  }, 4400);
+
+  var stages = document.querySelectorAll('.stage');
+  var observerOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.2
+  };
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        if (entry.target.id === 'stage-metrics') {
+          var cards = entry.target.querySelectorAll('.metric-card');
+          cards.forEach(function(card, idx) {
+            animateCount(card, idx * 80);
+          });
+        }
+      } else {
+        entry.target.classList.remove('active'); 
+        if (entry.target.id === 'stage-metrics') {
+          var cards = entry.target.querySelectorAll('.metric-card');
+          cards.forEach(function(card) {
+            var numEl = card.querySelector('.metric-num');
+            numEl.textContent = "0";
+            delete numEl.dataset.animated; 
+          });
+        }
+      }
+    });
+  }, observerOptions);
+
+  stages.forEach(function(stage) {
+    observer.observe(stage);
+  });
+
+  function animateCount(card, delayMs) {
+    var numEl = card.querySelector('.metric-num');
+    if (numEl.dataset.animated === '1') return;
+    numEl.dataset.animated = '1';
+    
+    var target = parseInt(card.getAttribute('data-target'), 10);
+    var suffix = card.getAttribute('data-suffix') || '';
+    
+    setTimeout(function() {
+      var startTs = null;
+      var duration = 700;
+      
+      function step(ts) {
+        if (numEl.dataset.animated !== '1') return;
+        if (!startTs) startTs = ts;
+        var progress = Math.min((ts - startTs) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 4);
+        var currentVal = Math.round(eased * target);
+        
+        numEl.textContent = currentVal + (progress >= 1 ? suffix : '');
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      }
+      requestAnimationFrame(step);
+    }, delayMs);
+  }
+
+  var triggers = {
+    SR: document.getElementById('sr-trigger'),
+    SWR: document.getElementById('swr-trigger'),
+    SCR: document.getElementById('scr-trigger'),
+    SECR: document.getElementById('secr-trigger'),
+    NCR: document.getElementById('ncr-trigger'),
+    NWR: document.getElementById('nwr-trigger'),
+    NER: document.getElementById('ner-trigger'),
+    NFR: document.getElementById('nfr-trigger'),
+    ER: document.getElementById('er-trigger'),
+    KM: document.getElementById('km-trigger'),
+    WR: document.getElementById('wr-trigger'),
+    WCR: document.getElementById('wcr-trigger'),
+    CR: document.getElementById('cr-trigger')
+  };
+  
+  var interlockingPanel = document.getElementById('interlocking-panel');
+  var nodeContainer = document.getElementById('dynamic-node-container');
+  var detailsPanel = document.getElementById('station-details-panel');
+  var activeZone = null;
+
+  var zoneConfigurations = {
+    SR: { defaultText: "SR STATIONS", nodes: [{ code: "CGL", label: "Chengalpattu Jn (188 R)" }, { code: "AJJ", label: "Arakkonam Jn (474 R)" }, { code: "TMV", label: "Tindivanam (32 R)" }] },
+    SWR: { defaultText: "SWR STATIONS", nodes: [{ code: "WFD", label: "Whitefield (173 R)" }, { code: "NDV", label: "Nidvanda (46 R)" }, { code: "MPT", label: "Mormugao Port (107 R)" }] },
+    SCR: { defaultText: "SCR STATIONS", nodes: [{ code: "YP", label: "Errupalem (83 R)" }, { code: "COA", label: "Kakinada Port (494 R)" }, { code: "DMM", label: "Dharmavaram Jn (273 R)" }] },
+    SECR: { defaultText: "SECR STATIONS", nodes: [{ code: "RJN", label: "Raj Nandgaon" }, { code: "PMS", label: "Parmalkasa" }, { code: "ADANI", label: "Adani Inplant & Crossing" }] },
+    NCR: { defaultText: "NCR STATIONS", nodes: [{ code: "JSR", label: "Jasra Station" }, { code: "IDGJ", label: "Iradatganj Station" }, { code: "DBR", label: "Dabhaura Station" }] },
+    NWR: { defaultText: "NWR STATIONS", nodes: [{ code: "TSD", label: "Tahsil Bhadra" }, { code: "LHU", label: "Loharu Junction" }, { code: "PRUR", label: "Pratapnagar" }] },
+    NER: { defaultText: "NER STATIONS", nodes: [{ code: "DLR", label: "Dullahapur" }, { code: "GH", label: "Ghughuli" }] },
+    NFR: { defaultText: "NFR STATIONS", nodes: [{ code: "DMZ", label: "Domaismutu" }, { code: "NMZ", label: "New Mal Junction" }, { code: "SVQ", label: "Sivok" }] },
+    ER: { defaultText: "ER STATIONS", nodes: [{ code: "SDAH", label: "Sealdah Division" }, { code: "NHT", label: "Nalhati Junction" }, { code: "SDLE", label: "Sainthia Junction" }] },
+    KM: { defaultText: "KOLKATA METRO", nodes: [{ code: "NOAPARA", label: "Noapara Car Shed (Hitachi)" }] },
+    WR: { defaultText: "WR STATIONS", nodes: [{ code: "MU", label: "Makansar" }, { code: "PRTN", label: "Pratapnagar" }, { code: "BA", label: "Bandra" }] },
+    WCR: { defaultText: "WCR STATIONS", nodes: [{ code: "SGO", label: "Saugor / Sagar" }, { code: "HNM", label: "Hirdamohan" }, { code: "GW", label: "Girwar" }] },
+    CR: { defaultText: "CR STATIONS", nodes: [{ code: "JSW", label: "JSW Dolvi & Inplant Yard" }] }
+  };
+
+  function closePanel() {
+    interlockingPanel.classList.remove('open');
+    detailsPanel.style.opacity = "0";
+    if (activeZone && triggers[activeZone]) {
+      triggers[activeZone].classList.remove('active-selected');
+    }
+    activeZone = null;
+  }
+
+  function executeOpen(zoneKey, triggerElement) {
+    activeZone = zoneKey;
+    triggerElement.classList.add('active-selected');
+    
+    var config = zoneConfigurations[zoneKey];
+    nodeContainer.innerHTML = '';
+    
+    config.nodes.forEach(function(nodeData) {
+      var nodeEl = document.createElement('div');
+      nodeEl.className = 'filament-node';
+      nodeEl.innerHTML = '<div class="node-lamp"></div><span class="node-code">' + nodeData.code + '</span>';
+      
+      nodeEl.addEventListener('click', function() {
+        var siblings = nodeContainer.querySelectorAll('.filament-node');
+        siblings.forEach(function(s) { if(s !== nodeEl) s.classList.remove('occupied'); });
+        
+        nodeEl.classList.toggle('occupied');
+        detailsPanel.textContent = nodeEl.classList.contains('occupied') ? nodeData.label : config.defaultText;
+        detailsPanel.style.color = nodeEl.classList.contains('occupied') ? "var(--signal-green)" : "var(--signal-amber)";
+        detailsPanel.style.opacity = "1";
+      });
+      
+      nodeContainer.appendChild(nodeEl);
+    });
+
+    detailsPanel.textContent = config.defaultText;
+    detailsPanel.style.color = "var(--signal-amber)";
+    interlockingPanel.classList.add('open');
+    detailsPanel.style.opacity = "1";
+  }
+
+  Object.keys(triggers).forEach(function(zoneKey) {
+    var trigger = triggers[zoneKey];
+    if (trigger) {
+      trigger.addEventListener('click', function() {
+        if (activeZone === zoneKey) {
+          closePanel();
+        } else {
+          if (activeZone) closePanel();
+          executeOpen(zoneKey, trigger);
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
